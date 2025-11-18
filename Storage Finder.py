@@ -324,8 +324,8 @@ def get_facility_code(site, storage_type):
     }
     return facility_codes.get(site.lower(), {}).get(storage_type, "OBRIC")
 
-def get_available_units(facility_code):
-    """Get LIVE available units from the API - real-time availability only"""
+def fetch_units_from_api(facility_code):
+    """Fetch all units from API (single call) - returns all units"""
     if not TOKEN:
         import sys
         sys.stderr.write("ERROR: STORMAN_API_TOKEN is not set. Cannot fetch units from API.\n")
@@ -336,17 +336,26 @@ def get_available_units(facility_code):
         res = requests.get(f"{BASE_URL}/api/v1/facility/{facility_code}/units", headers=HEADERS)
         if res.status_code == 200:
             units = res.json()
-            # Filter for available units only - API uses 'VACANT' status for available units
-            # This ensures only currently available units are shown
-            available_units = [unit for unit in units if unit.get('unit_status') == 'VACANT']
-            return available_units
+            return units
     except Exception as e:
-        print(f"Error fetching availability: {e}")
+        print(f"Error fetching units from API: {e}")
     return []
 
-def get_pricing_from_api(site, storage_type):
+def get_available_units(facility_code, units=None):
+    """Get LIVE available units from the API - real-time availability only
+    If units are provided, uses those instead of making a new API call"""
+    if units is None:
+        units = fetch_units_from_api(facility_code)
+    
+    # Filter for available units only - API uses 'VACANT' status for available units
+    # This ensures only currently available units are shown
+    available_units = [unit for unit in units if unit.get('unit_status') == 'VACANT']
+    return available_units
+
+def get_pricing_from_api(site, storage_type, units=None):
     """Get LIVE pricing from API and calculate weekly prices dynamically - NO FALLBACK
-    This is an online pricing system - all prices fetched in real-time from API only"""
+    This is an online pricing system - all prices fetched in real-time from API only
+    If units are provided, uses those instead of making a new API call"""
     if not TOKEN:
         import sys
         sys.stderr.write("ERROR: STORMAN_API_TOKEN is not set. Cannot fetch pricing from API.\n")
@@ -354,9 +363,12 @@ def get_pricing_from_api(site, storage_type):
         return False
     try:
         facility_code = FACILITY_CODES[storage_type]
-        res = requests.get(f"{BASE_URL}/api/v1/facility/{facility_code}/units", headers=HEADERS)
-        if res.status_code == 200:
-            units = res.json()
+        
+        # Only fetch from API if units not provided
+        if units is None:
+            units = fetch_units_from_api(facility_code)
+        
+        if units:
             
             # Initialize pricing structure for this site/storage type
             if site not in SITE_PRICING:
@@ -419,6 +431,8 @@ def get_pricing_from_api(site, storage_type):
             
             # Return True if we found pricing, False if no pricing available
             return len(size_pricing) > 0
+        else:
+            return False
             
     except Exception as e:
         print(f"Error fetching pricing from API: {e}")
@@ -426,21 +440,28 @@ def get_pricing_from_api(site, storage_type):
 
 def get_available_sizes(site, storage_type):
     """Get LIVE available sizes for a specific site and storage type from API
-    Returns only sizes that are currently available - no fallback sizes"""
+    Returns only sizes that are currently available - no fallback sizes
+    OPTIMIZED: Makes only ONE API call instead of two"""
     import sys
     sys.stderr.write(f"DEBUG get_available_sizes: site={site}, storage_type={storage_type}\n")
-    sys.stderr.flush()
-    
-    # First, fetch live pricing from API to populate SITE_PRICING
-    api_success = get_pricing_from_api(site, storage_type)
-    sys.stderr.write(f"DEBUG get_available_sizes: get_pricing_from_api returned {api_success}\n")
     sys.stderr.flush()
     
     facility_code = FACILITY_CODES[storage_type]
     sys.stderr.write(f"DEBUG get_available_sizes: facility_code={facility_code}\n")
     sys.stderr.flush()
     
-    available_units = get_available_units(facility_code)
+    # OPTIMIZATION: Fetch units ONCE and use for both pricing and availability
+    units = fetch_units_from_api(facility_code)
+    sys.stderr.write(f"DEBUG get_available_sizes: Fetched {len(units)} units from API (single call)\n")
+    sys.stderr.flush()
+    
+    # Use the same units for pricing (avoids duplicate API call)
+    api_success = get_pricing_from_api(site, storage_type, units=units)
+    sys.stderr.write(f"DEBUG get_available_sizes: get_pricing_from_api returned {api_success}\n")
+    sys.stderr.flush()
+    
+    # Use the same units for availability (avoids duplicate API call)
+    available_units = get_available_units(facility_code, units=units)
     sys.stderr.write(f"DEBUG get_available_sizes: get_available_units returned {len(available_units)} units\n")
     sys.stderr.flush()
     
