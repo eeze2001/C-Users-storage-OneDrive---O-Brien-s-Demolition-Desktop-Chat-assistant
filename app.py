@@ -373,18 +373,24 @@ def show_results():
         if not available_sizes:
             return render_template('no_availability.html', site=site)
         
-        # Find suitable size
+        # Find suitable size with 8sqft tolerance for internal storage
         suitable_size = None
-        if items:
-            for available_size in available_sizes:
-                if available_size >= size:
-                    suitable_size = available_size
-                    break
+        if storage_type == 'internal':
+            # For internal storage: 8sqft tolerance (e.g., 42sqft can cover 50sqft)
+            # Find closest available size that is >= (calculated_size - 8)
+            min_acceptable_size = size - 8
+            acceptable_sizes = [s for s in available_sizes if s >= min_acceptable_size]
+            
+            if acceptable_sizes:
+                # Find the closest size to the calculated size
+                suitable_size = min(acceptable_sizes, key=lambda x: abs(x - size))
         else:
+            # For containers: strict >= match (standardized sizes: 40, 80, 160, 320)
             if size in available_sizes:
                 suitable_size = size
             else:
-                for available_size in available_sizes:
+                # Find first available size >= calculated size
+                for available_size in sorted(available_sizes):
                     if available_size >= size:
                         suitable_size = available_size
                         break
