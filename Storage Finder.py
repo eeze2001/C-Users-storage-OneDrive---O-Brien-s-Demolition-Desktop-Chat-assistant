@@ -21,8 +21,16 @@ load_dotenv()
 
 BASE_URL = "https://clouduk.storman.com"
 TOKEN = os.getenv("STORMAN_API_TOKEN")
+
+# Check if TOKEN is set
+if not TOKEN:
+    import sys
+    sys.stderr.write("WARNING: STORMAN_API_TOKEN environment variable is not set!\n")
+    sys.stderr.write("Please set STORMAN_API_TOKEN in Render's environment variables.\n")
+    sys.stderr.flush()
+
 HEADERS = {
-    "Authorization": f"Bearer {TOKEN}",
+    "Authorization": f"Bearer {TOKEN}" if TOKEN else "Bearer ",
     "Accept": "application/json"
 }
 
@@ -318,6 +326,12 @@ def get_facility_code(site, storage_type):
 
 def get_available_units(facility_code):
     """Get LIVE available units from the API - real-time availability only"""
+    if not TOKEN:
+        import sys
+        sys.stderr.write("ERROR: STORMAN_API_TOKEN is not set. Cannot fetch units from API.\n")
+        sys.stderr.flush()
+        return []
+    
     try:
         res = requests.get(f"{BASE_URL}/api/v1/facility/{facility_code}/units", headers=HEADERS)
         if res.status_code == 200:
@@ -333,6 +347,11 @@ def get_available_units(facility_code):
 def get_pricing_from_api(site, storage_type):
     """Get LIVE pricing from API and calculate weekly prices dynamically - NO FALLBACK
     This is an online pricing system - all prices fetched in real-time from API only"""
+    if not TOKEN:
+        import sys
+        sys.stderr.write("ERROR: STORMAN_API_TOKEN is not set. Cannot fetch pricing from API.\n")
+        sys.stderr.flush()
+        return False
     try:
         facility_code = FACILITY_CODES[storage_type]
         res = requests.get(f"{BASE_URL}/api/v1/facility/{facility_code}/units", headers=HEADERS)
