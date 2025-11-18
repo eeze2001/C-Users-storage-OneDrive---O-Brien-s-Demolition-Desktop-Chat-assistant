@@ -143,9 +143,26 @@ def items_input():
             return render_template('items_input.html')
         
         session['description'] = description
-        return redirect(url_for('select_site'))
+        # Need to choose storage type first, then site
+        return redirect(url_for('choose_storage_type_for_items'))
     
     return render_template('items_input.html')
+
+@app.route('/choose-storage-type-for-items', methods=['GET', 'POST'])
+def choose_storage_type_for_items():
+    """Choose storage type when coming from items input"""
+    if 'customer_name' not in session or 'description' not in session:
+        return redirect(url_for('items_input'))
+    
+    if request.method == 'POST':
+        storage_type = request.form.get('storage_type')
+        if storage_type in ['container', 'internal']:
+            session['storage_type'] = storage_type
+            return redirect(url_for('select_site'))
+        else:
+            flash('Please select a storage type', 'error')
+    
+    return render_template('choose_size.html')
 
 @app.route('/choose-size', methods=['GET', 'POST'])
 def choose_size():
@@ -155,8 +172,13 @@ def choose_size():
     
     if request.method == 'POST':
         storage_type = request.form.get('storage_type')
+        if not storage_type:
+            flash('Please select a storage type', 'error')
+            return render_template('choose_size.html')
+        
         session['storage_type'] = storage_type
         session['size_method'] = 'known'
+        # Always go to site selection after choosing storage type
         return redirect(url_for('select_site'))
     
     return render_template('choose_size.html')
@@ -167,21 +189,21 @@ def select_site():
     if 'customer_name' not in session:
         return redirect(url_for('start'))
     
+    # Get storage type from session (should be set by now)
+    storage_type = session.get('storage_type')
+    
     if request.method == 'POST':
         site = request.form.get('site')
         if not site:
             flash('Please select a site', 'error')
-            return render_template('select_site.html')
+            return render_template('select_site.html', storage_type=storage_type)
+        
+        # Validate site selection based on storage type
+        if storage_type == 'internal' and site != 'sunderland':
+            flash('Internal storage is only available at Sunderland', 'error')
+            return render_template('select_site.html', storage_type=storage_type)
         
         session['site'] = site
-        
-        # Determine storage type if not set
-        if 'storage_type' not in session:
-            if site == 'sunderland':
-                # Need to ask for container vs internal
-                return redirect(url_for('select_storage_type'))
-            else:
-                session['storage_type'] = 'container'
         
         # Process based on method
         if session.get('size_method') == 'known':
@@ -190,26 +212,8 @@ def select_site():
             # Calculate size from items
             return redirect(url_for('process_items'))
     
-    return render_template('select_site.html')
+    return render_template('select_site.html', storage_type=storage_type)
 
-@app.route('/select-storage-type', methods=['GET', 'POST'])
-def select_storage_type():
-    """Select container or internal storage (Sunderland only)"""
-    if 'customer_name' not in session or session.get('site') != 'sunderland':
-        return redirect(url_for('select_site'))
-    
-    if request.method == 'POST':
-        storage_type = request.form.get('storage_type')
-        if storage_type in ['container', 'internal']:
-            session['storage_type'] = storage_type
-            if session.get('size_method') == 'known':
-                return redirect(url_for('select_known_size'))
-            else:
-                return redirect(url_for('process_items'))
-        else:
-            flash('Please select a storage type', 'error')
-    
-    return render_template('select_storage_type.html')
 
 @app.route('/process-items')
 def process_items():
@@ -221,8 +225,15 @@ def process_items():
     if 'customer_name' not in session or 'description' not in session:
         return redirect(url_for('items_input'))
     
+    # Make sure we have storage type and site selected
+    if 'storage_type' not in session:
+        return redirect(url_for('choose_storage_type_for_items'))
+    
+    if 'site' not in session:
+        return redirect(url_for('select_site'))
+    
     description = session['description']
-    storage_type = session.get('storage_type', 'container')
+    storage_type = session.get('storage_type')
     
     # Use the storage_finder logic to analyze description
     items, _, vehicle_mentioned = storage_finder.analyze_initial_description(description)
@@ -290,10 +301,11 @@ def vehicle_warning():
         switch = request.form.get('switch')
         if switch == 'yes':
             session['storage_type'] = 'container'
-            return redirect(url_for('process_items'))
+            # Need to select site for container storage
+            return redirect(url_for('select_site'))
         else:
             flash('Vehicles cannot be stored in internal storage. Please select container storage.', 'error')
-            return redirect(url_for('select_storage_type'))
+            return redirect(url_for('choose_storage_type_for_items'))
     
     return render_template('vehicle_warning.html')
 
