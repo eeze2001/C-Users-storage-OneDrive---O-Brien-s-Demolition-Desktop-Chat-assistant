@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}Customer Information - O'Brien's Storage Finder{% endblock %}
+
+{% block content %}
+<div class="form-section">
+    <div class="form-card">
+        <h2>Customer Information</h2>
+        <p>Please provide your details to continue</p>
+
+        <form method="POST" action="{{ url_for('start') }}" class="customer-form">
+            <div class="form-group">
+                <label for="name">Full Name *</label>
+                <input type="text" id="name" name="name" required 
+                       placeholder="Enter your full name"
+                       value="{{ request.form.get('name', '') }}">
+            </div>
+
+            <div class="form-group">
+                <label for="phone">UK Phone Number *</label>
+                <input type="tel" id="phone" name="phone" required 
+                       placeholder="e.g. 07123456789 or 0191 1234567"
+                       value="{{ request.form.get('phone', '') }}">
+                <small>Enter a valid UK phone number</small>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email Address *</label>
+                <input type="email" id="email" name="email" required 
+                       placeholder="your.email@example.com"
+                       value="{{ request.form.get('email', '') }}">
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Continue</button>
+                <a href="{{ url_for('index') }}" class="btn btn-secondary">Back</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+

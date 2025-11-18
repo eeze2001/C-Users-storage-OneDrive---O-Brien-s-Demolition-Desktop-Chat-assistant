@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}Welcome - O'Brien's Storage Finder{% endblock %}
+
+{% block content %}
+<div class="welcome-section">
+    <div class="welcome-card">
+        <h2>Welcome to O'Brien's Storage Finder</h2>
+        <p class="lead">Find available storage units in real-time across all our locations.</p>
+        <p>Get instant pricing and availability for the perfect storage solution.</p>
+        
+        <div class="features">
+            <div class="feature">
+                <span class="icon">📍</span>
+                <h3>Multiple Locations</h3>
+                <p>Wallsend, Boldon, Birtley, Sunderland, Chester-le-Street</p>
+            </div>
+            <div class="feature">
+                <span class="icon">💰</span>
+                <h3>Live Pricing</h3>
+                <p>Real-time pricing and availability from our API</p>
+            </div>
+            <div class="feature">
+                <span class="icon">📦</span>
+                <h3>Size Calculator</h3>
+                <p>Tell us what you're storing and we'll recommend the perfect size</p>
+            </div>
+        </div>
+
+        <div class="cta">
+            <a href="{{ url_for('start') }}" class="btn btn-primary btn-large">Start Finding Storage</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

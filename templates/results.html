@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+
+{% block title %}Storage Recommendation - O'Brien's Storage Finder{% endblock %}
+
+{% block content %}
+<div class="results-section">
+    <div class="results-card">
+        <h2>📋 Your Storage Recommendation</h2>
+        <p class="greeting">Hello, {{ customer_name }}!</p>
+
+        <div class="recommendation-summary">
+            <div class="summary-item">
+                <span class="label">📍 Location:</span>
+                <span class="value">{{ site.title() }}</span>
+            </div>
+            <div class="summary-item">
+                <span class="label">🏢 Storage Type:</span>
+                <span class="value">{{ storage_type.title() }}</span>
+            </div>
+            {% if items %}
+            <div class="summary-item">
+                <span class="label">📦 Items:</span>
+                <span class="value">{{ items|join(', ') }}</span>
+            </div>
+            <div class="summary-item">
+                <span class="label">📏 Estimated Size Needed:</span>
+                <span class="value">{{ size }} sq ft</span>
+            </div>
+            {% else %}
+            <div class="summary-item">
+                <span class="label">📏 Selected Size:</span>
+                <span class="value">{{ size }} sq ft</span>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="recommended-solution">
+            <h3>✅ Recommended Solution:</h3>
+            {% if storage_type == 'container' %}
+                {% if size == 40 %}
+                    <p class="size-name">Small (4ft x 10ft - 40sqft)</p>
+                {% elif size == 80 %}
+                    <p class="size-name">Medium (10ft x 8ft - 80sqft)</p>
+                {% elif size == 160 %}
+                    <p class="size-name">Large (20ft x 8ft - 160sqft)</p>
+                {% elif size == 320 %}
+                    <p class="size-name">Extra Large (40ft x 8ft - 320sqft)</p>
+                {% endif %}
+            {% else %}
+                <p class="size-name">{{ size }} sqft room (8ft tall)</p>
+            {% endif %}
+
+            {% if pricing %}
+            <div class="pricing">
+                {% if site == 'wallsend' and storage_type == 'container' and size in [40, 80, 160] %}
+                    <p class="price">💰 £18 per week inc VAT with 2nd month free promotion</p>
+                    <p class="price-monthly">💰 £{{ pricing.monthly }} per month</p>
+                    <p class="special-offer">🎉 SPECIAL: 2nd month free promotion - equates to £18 per week!</p>
+                {% elif storage_type == 'internal' %}
+                    <p class="price">💰 £{{ "%.2f"|format(pricing.weekly / 2) }} per week inc VAT (£{{ "%.2f"|format(pricing.monthly / 2) }} per month) for the 1st 2 months</p>
+                    <p class="price-monthly">💰 £{{ pricing.weekly }} per week inc VAT (£{{ pricing.monthly }} per month) thereafter</p>
+                    <p class="special-offer">🎉 SPECIAL: First 2 months at half price!</p>
+                {% else %}
+                    <p class="price">💰 £{{ pricing.weekly }} per week inc VAT</p>
+                    <p class="price-monthly">💰 £{{ pricing.monthly }} per month</p>
+                {% endif %}
+            </div>
+            {% else %}
+            <div class="pricing-warning">
+                <p>⚠️ Pricing not available from API for this size.</p>
+                <p>Please contact us for current pricing: 0191 5372436</p>
+            </div>
+            {% endif %}
+        </div>
+
+        {% if unrecognized %}
+        <div class="warning-box">
+            <h4>⚠️ Note: Some items weren't recognized:</h4>
+            <ul>
+                {% for item in unrecognized %}
+                <li>{{ item }}</li>
+                {% endfor %}
+            </ul>
+            <p><small>(This may affect the size calculation)</small></p>
+        </div>
+        {% endif %}
+
+        {% if prohibited %}
+        <div class="error-box">
+            <h4>🚫 WARNING: Some items may be prohibited:</h4>
+            <ul>
+                {% for item in prohibited %}
+                <li>{{ item }}</li>
+                {% endfor %}
+            </ul>
+            <p><small>Please contact us for clarification.</small></p>
+        </div>
+        {% endif %}
+
+        {% if storage_type == 'internal' and items and 'sofa' in items|join(' ')|lower %}
+        <div class="info-box">
+            <h4>📏 IMPORTANT: The lift is 2m x 2m</h4>
+            <p>A typical 3-seater sofa may be too big for the lift. Please measure your sofa before booking.</p>
+        </div>
+        {% endif %}
+
+        <div class="contract-info">
+            <h3>📋 Contract Information</h3>
+            <ul class="contract-list">
+                <li>Monthly renewable contracts</li>
+                <li>Pay monthly in advance</li>
+                {% if storage_type == 'container' %}
+                    <li>£{{ contract_info.deposit }} deposit (fully refundable)</li>
+                    <li>Insurance: £{{ contract_info.insurance_rate }} per £1k per week (advised) - {{ contract_info.insurance_note }}</li>
+                    <li>Heavy-duty padlock: £{{ contract_info.lock }} (container-specific)</li>
+                {% else %}
+                    <li>£{{ contract_info.deposit }} deposit (fully refundable)</li>
+                    <li>Insurance required: £{{ contract_info.insurance_rate }} per £1k per week - {{ contract_info.insurance_note }}</li>
+                    <li>Padlock: £{{ contract_info.padlock }}</li>
+                    <li>Liability: Goods stored at your sole risk</li>
+                    <li>Liability limit: £100</li>
+                {% endif %}
+            </ul>
+        </div>
+
+        <div class="booking-actions">
+            <h3>Ready to book?</h3>
+            <div class="action-buttons">
+                {% if storage_type == 'container' %}
+                    <a href="https://portaluk.storman.com/facility/OBRIC/unit-selection?env=uk" 
+                       target="_blank" class="btn btn-primary btn-large">🔗 Book Now Online</a>
+                {% else %}
+                    <a href="https://portaluk.storman.com/facility/OBRIE/unit-selection?env=uk" 
+                       target="_blank" class="btn btn-primary btn-large">🔗 Book Now Online</a>
+                {% endif %}
+                <div class="contact-options">
+                    <p><strong>📞 Call us:</strong> 0191 5372436</p>
+                    <p><strong>📧 Email us:</strong> info@obrienselfstorage.co.uk</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <a href="{{ url_for('find_storage') }}" class="btn btn-secondary">Find Another Storage</a>
+            <a href="{{ url_for('index') }}" class="btn btn-secondary">Start Over</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

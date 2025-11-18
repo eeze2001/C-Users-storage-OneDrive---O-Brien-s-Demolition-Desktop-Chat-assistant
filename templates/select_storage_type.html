@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}Select Storage Type - O'Brien's Storage Finder{% endblock %}
+
+{% block content %}
+<div class="form-section">
+    <div class="form-card">
+        <h2>Sunderland - Choose Storage Type</h2>
+        <p>Sunderland offers both container and internal storage options</p>
+
+        <form method="POST" action="{{ url_for('select_storage_type') }}" class="customer-form">
+            <div class="form-group">
+                <div class="radio-options">
+                    <label class="radio-option">
+                        <input type="radio" name="storage_type" value="container" required>
+                        <div class="radio-content">
+                            <strong>Container Storage</strong>
+                            <p>Outdoor containers with 24/7 access</p>
+                        </div>
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="storage_type" value="internal" required>
+                        <div class="radio-content">
+                            <strong>Internal Storage</strong>
+                            <p>Indoor rooms with business hours access</p>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Continue</button>
+                <a href="{{ url_for('select_site') }}" class="btn btn-secondary">Back</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+

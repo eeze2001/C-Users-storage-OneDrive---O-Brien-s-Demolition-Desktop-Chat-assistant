@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}What Are You Storing? - O'Brien's Storage Finder{% endblock %}
+
+{% block content %}
+<div class="form-section">
+    <div class="form-card">
+        <h2>What would you like to store?</h2>
+        <p>Describe your items and we'll calculate the perfect storage size for you.</p>
+        <p class="help-text">For example: "3 seater sofa, double bed, wardrobe, 10 boxes, TV"</p>
+
+        <form method="POST" action="{{ url_for('items_input') }}" class="customer-form">
+            <div class="form-group">
+                <label for="description">Items to Store *</label>
+                <textarea id="description" name="description" rows="5" required 
+                          placeholder="e.g. 3 seater sofa, double bed, wardrobe, 10 boxes, TV, washing machine"
+                          class="form-control">{{ request.form.get('description', '') }}</textarea>
+                <small>List all items you want to store. Include quantities if you have multiple of the same item.</small>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Continue</button>
+                <a href="{{ url_for('find_storage') }}" class="btn btn-secondary">Back</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+

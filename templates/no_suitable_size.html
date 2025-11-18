@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}No Suitable Size - O'Brien's Storage Finder{% endblock %}
+
+{% block content %}
+<div class="form-section">
+    <div class="form-card">
+        <h2>⚠️ No Suitable Size Available</h2>
+        <p>We don't have a unit that matches your required size of {{ required_size }} sqft at {{ site.title() }}.</p>
+        
+        <p><strong>Available sizes at this location:</strong></p>
+        <ul class="size-list">
+            {% for size in available_sizes %}
+            <li>{{ size }} sqft</li>
+            {% endfor %}
+        </ul>
+
+        <p>Please contact us to discuss alternatives or try another site.</p>
+
+        <div class="contact-info">
+            <p><strong>📞 Phone:</strong> 0191 5372436</p>
+            <p><strong>📧 Email:</strong> info@obrienselfstorage.co.uk</p>
+        </div>
+
+        <div class="form-actions">
+            <a href="{{ url_for('select_site') }}" class="btn btn-primary">Try Another Site</a>
+            <a href="{{ url_for('index') }}" class="btn btn-secondary">Start Over</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

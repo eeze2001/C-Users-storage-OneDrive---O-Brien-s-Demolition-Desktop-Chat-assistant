@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: storage-finder
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
+    envVars:
+      - key: STORMAN_API_TOKEN
+        sync: false
+      - key: SECRET_KEY
+        sync: false
+

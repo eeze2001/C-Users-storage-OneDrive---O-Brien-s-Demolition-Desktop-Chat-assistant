@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}Select Size - O'Brien's Storage Finder{% endblock %}
+
+{% block content %}
+<div class="form-section">
+    <div class="form-card">
+        <h2>What size do you need?</h2>
+        <p>Available sizes at {{ site.title() }} ({{ storage_type.title() }})</p>
+
+        <form method="POST" action="{{ url_for('select_known_size') }}" class="customer-form">
+            <div class="form-group">
+                <div class="radio-options">
+                    {% for size in available_sizes %}
+                    <label class="radio-option">
+                        <input type="radio" name="size" value="{{ size }}" required>
+                        <div class="radio-content">
+                            {% if storage_type == 'container' %}
+                                {% if size == 40 %}
+                                    <strong>Small (4ft x 10ft - 40sqft)</strong>
+                                {% elif size == 80 %}
+                                    <strong>Medium (10ft x 8ft - 80sqft)</strong>
+                                {% elif size == 160 %}
+                                    <strong>Large (20ft x 8ft - 160sqft)</strong>
+                                {% elif size == 320 %}
+                                    <strong>Extra Large (40ft x 8ft - 320sqft)</strong>
+                                {% else %}
+                                    <strong>{{ size }} sqft</strong>
+                                {% endif %}
+                            {% else %}
+                                <strong>{{ size }} sqft room (8ft tall)</strong>
+                            {% endif %}
+                        </div>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Continue</button>
+                <a href="{{ url_for('select_site') }}" class="btn btn-secondary">Back</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+

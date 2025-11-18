@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}Find Storage - O'Brien's Storage Finder{% endblock %}
+
+{% block content %}
+<div class="storage-finder">
+    <h2>Let's Find You the Perfect Storage Solution</h2>
+    <p class="lead">Hello, {{ session.customer_name }}! Let's get started.</p>
+
+    <div class="finder-options">
+        <div class="option-card">
+            <h3>Option 1: Tell Us What You're Storing</h3>
+            <p>Describe your items and we'll calculate the perfect size</p>
+            <a href="{{ url_for('items_input') }}" class="btn btn-primary">Start with Items</a>
+        </div>
+
+        <div class="option-card">
+            <h3>Option 2: Choose a Specific Size</h3>
+            <p>If you know what size you need, select it directly</p>
+            <a href="{{ url_for('choose_size') }}" class="btn btn-primary">Choose Size</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

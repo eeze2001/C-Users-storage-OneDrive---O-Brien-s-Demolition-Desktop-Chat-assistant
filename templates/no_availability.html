@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}No Availability - O'Brien's Storage Finder{% endblock %}
+
+{% block content %}
+<div class="form-section">
+    <div class="form-card">
+        <h2>⚠️ Currently No Units Available</h2>
+        <p>We're sorry, but there are currently no units available at {{ site.title() }}.</p>
+        <p>Please contact us directly for availability updates.</p>
+
+        <div class="contact-info">
+            <p><strong>📞 Phone:</strong> 0191 5372436</p>
+            <p><strong>📧 Email:</strong> info@obrienselfstorage.co.uk</p>
+            <p><strong>🕐 Hours:</strong> Monday-Friday 8am-5pm</p>
+        </div>
+
+        <div class="form-actions">
+            <a href="{{ url_for('select_site') }}" class="btn btn-primary">Try Another Site</a>
+            <a href="{{ url_for('index') }}" class="btn btn-secondary">Start Over</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}Vehicle Storage Warning - O'Brien's Storage Finder{% endblock %}
+
+{% block content %}
+<div class="form-section">
+    <div class="form-card warning-card">
+        <h2>⚠️ Important: Vehicle Storage</h2>
+        <p><strong>Vehicles are not allowed in internal storage rooms.</strong></p>
+        <p>You'll need to use container storage instead for vehicle storage.</p>
+
+        <form method="POST" action="{{ url_for('vehicle_warning') }}" class="customer-form">
+            <div class="form-group">
+                <p>Would you like to switch to container storage?</p>
+                <div class="radio-options">
+                    <label class="radio-option">
+                        <input type="radio" name="switch" value="yes" required>
+                        <div class="radio-content">
+                            <strong>Yes, switch to container storage</strong>
+                        </div>
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="switch" value="no" required>
+                        <div class="radio-content">
+                            <strong>No, go back</strong>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Continue</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
