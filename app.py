@@ -37,8 +37,8 @@ except Exception as e:
     import traceback
     error_msg = f"Error importing storage_finder: {e}\n{traceback.format_exc()}"
     print(error_msg)
-    # Don't raise - let the app start but handle errors gracefully
-    storage_finder = None
+    # Raise the error so we know what's wrong
+    raise
 
 # Static prices (only these are hardcoded)
 STATIC_PRICES = {
@@ -158,7 +158,14 @@ def choose_storage_type_for_items():
         storage_type = request.form.get('storage_type')
         if storage_type in ['container', 'internal']:
             session['storage_type'] = storage_type
-            return redirect(url_for('select_site'))
+            
+            # If internal storage, auto-select Sunderland and skip site selection
+            if storage_type == 'internal':
+                session['site'] = 'sunderland'
+                return redirect(url_for('process_items'))
+            else:
+                # Container storage - need to choose site
+                return redirect(url_for('select_site'))
         else:
             flash('Please select a storage type', 'error')
     
@@ -178,8 +185,14 @@ def choose_size():
         
         session['storage_type'] = storage_type
         session['size_method'] = 'known'
-        # Always go to site selection after choosing storage type
-        return redirect(url_for('select_site'))
+        
+        # If internal storage, auto-select Sunderland and skip site selection
+        if storage_type == 'internal':
+            session['site'] = 'sunderland'
+            return redirect(url_for('select_known_size'))
+        else:
+            # Container storage - need to choose site
+            return redirect(url_for('select_site'))
     
     return render_template('choose_size.html')
 
@@ -189,8 +202,8 @@ def select_site():
     if 'customer_name' not in session:
         return redirect(url_for('start'))
     
-    # Get storage type from session (should be set by now)
-    storage_type = session.get('storage_type')
+    # Get storage type from session (default to container if not set)
+    storage_type = session.get('storage_type', 'container')
     
     if request.method == 'POST':
         site = request.form.get('site')
@@ -204,6 +217,9 @@ def select_site():
             return render_template('select_site.html', storage_type=storage_type)
         
         session['site'] = site
+        # Ensure storage_type is set (default to container)
+        if 'storage_type' not in session:
+            session['storage_type'] = 'container'
         
         # Process based on method
         if session.get('size_method') == 'known':
@@ -268,13 +284,30 @@ def select_known_size():
     site = session.get('site')
     storage_type = session.get('storage_type', 'container')
     
+    # Debug: Check if site and storage_type are set
+    if not site:
+        flash('Site not selected. Please select a site first.', 'error')
+        return redirect(url_for('select_site'))
+    
     # Get available sizes
     try:
+        import sys
+        sys.stderr.write(f"DEBUG: Checking availability for site={site}, storage_type={storage_type}\n")
+        sys.stderr.flush()
         available_sizes = storage_finder.get_available_sizes(site, storage_type)
+        sys.stderr.write(f"DEBUG: Available sizes returned: {available_sizes}\n")
+        sys.stderr.flush()
         if not available_sizes:
+            sys.stderr.write(f"DEBUG: No available sizes found, redirecting\n")
+            sys.stderr.flush()
             flash('No units currently available at this site. Please try another site.', 'error')
             return redirect(url_for('select_site'))
     except Exception as e:
+        import traceback
+        import sys
+        error_details = traceback.format_exc()
+        sys.stderr.write(f"DEBUG: Error in get_available_sizes: {e}\n{error_details}\n")
+        sys.stderr.flush()
         flash(f'Error checking availability: {str(e)}', 'error')
         return redirect(url_for('select_site'))
     

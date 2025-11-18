@@ -408,11 +408,22 @@ def get_pricing_from_api(site, storage_type):
 def get_available_sizes(site, storage_type):
     """Get LIVE available sizes for a specific site and storage type from API
     Returns only sizes that are currently available - no fallback sizes"""
+    import sys
+    sys.stderr.write(f"DEBUG get_available_sizes: site={site}, storage_type={storage_type}\n")
+    sys.stderr.flush()
+    
     # First, fetch live pricing from API to populate SITE_PRICING
     api_success = get_pricing_from_api(site, storage_type)
+    sys.stderr.write(f"DEBUG get_available_sizes: get_pricing_from_api returned {api_success}\n")
+    sys.stderr.flush()
     
     facility_code = FACILITY_CODES[storage_type]
+    sys.stderr.write(f"DEBUG get_available_sizes: facility_code={facility_code}\n")
+    sys.stderr.flush()
+    
     available_units = get_available_units(facility_code)
+    sys.stderr.write(f"DEBUG get_available_sizes: get_available_units returned {len(available_units)} units\n")
+    sys.stderr.flush()
     
     # Extract sizes from available units
     available_sizes = set()
@@ -471,7 +482,11 @@ def get_available_sizes(site, storage_type):
                     available_sizes.add(unit_area)
     
     # Return only live availability from API - no fallback sizes
-    return sorted(list(available_sizes))
+    result = sorted(list(available_sizes))
+    import sys
+    sys.stderr.write(f"DEBUG get_available_sizes: returning {result}\n")
+    sys.stderr.flush()
+    return result
 
 def calculate_size_from_items(items_list):
     total_cuft = 0
