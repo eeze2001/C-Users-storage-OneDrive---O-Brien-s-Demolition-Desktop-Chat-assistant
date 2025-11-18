@@ -446,11 +446,17 @@ def get_available_sizes(site, storage_type):
     
     # Extract sizes from available units
     available_sizes = set()
+    sys.stderr.write(f"DEBUG get_available_sizes: Processing {len(available_units)} units\n")
+    sys.stderr.flush()
+    
     for unit in available_units:
         # Use the actual API data structure
         unit_area = unit.get('unit_area', 0)
         unit_number = unit.get('unit_number', '')
         unit_type = unit.get('unit_type_code', '').lower()
+        
+        sys.stderr.write(f"DEBUG get_available_sizes: Checking unit {unit_number}, area={unit_area}, type={unit_type}\n")
+        sys.stderr.flush()
         
         # Filter by site
         site_matches = False
@@ -460,11 +466,17 @@ def get_available_sizes(site, storage_type):
                 for prefix in SITE_PREFIXES[site]:
                     if unit_number.startswith(prefix):
                         site_matches = True
+                        sys.stderr.write(f"DEBUG get_available_sizes: Unit {unit_number} matches site {site} with prefix {prefix}\n")
+                        sys.stderr.flush()
                         break
         else:  # Internal storage
             # For internal storage (Sunderland only), don't filter by unit number
             # All OBRIE units are for Sunderland internal storage
             site_matches = True
+        
+        if not site_matches:
+            sys.stderr.write(f"DEBUG get_available_sizes: Unit {unit_number} does NOT match site {site}\n")
+            sys.stderr.flush()
         
         if site_matches:
             if storage_type == "container":
