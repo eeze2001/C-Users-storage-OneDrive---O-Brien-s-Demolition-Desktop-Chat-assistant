@@ -16,10 +16,29 @@ app = Flask(__name__)
 app.secret_key = os.getenv('SECRET_KEY', 'dev-secret-key-change-in-production')
 
 # Import the storage finder logic
-spec = importlib.util.spec_from_file_location("storage_finder", "Storage Finder.py")
-storage_finder = importlib.util.module_from_spec(spec)
-sys.modules["storage_finder"] = storage_finder
-spec.loader.exec_module(storage_finder)
+try:
+    # Handle filename with space - use absolute path
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    storage_finder_path = os.path.join(current_dir, "Storage Finder.py")
+    
+    # Check if file exists
+    if not os.path.exists(storage_finder_path):
+        raise FileNotFoundError(f"Storage Finder.py not found at {storage_finder_path}")
+    
+    spec = importlib.util.spec_from_file_location("storage_finder", storage_finder_path)
+    if spec is None or spec.loader is None:
+        raise ImportError("Failed to create spec for Storage Finder.py")
+    
+    storage_finder = importlib.util.module_from_spec(spec)
+    sys.modules["storage_finder"] = storage_finder
+    spec.loader.exec_module(storage_finder)
+    print("Successfully imported storage_finder module")
+except Exception as e:
+    import traceback
+    error_msg = f"Error importing storage_finder: {e}\n{traceback.format_exc()}"
+    print(error_msg)
+    # Don't raise - let the app start but handle errors gracefully
+    storage_finder = None
 
 # Static prices (only these are hardcoded)
 STATIC_PRICES = {
@@ -195,6 +214,10 @@ def select_storage_type():
 @app.route('/process-items')
 def process_items():
     """Process items and calculate size"""
+    if storage_finder is None:
+        flash('Application error: Storage finder module not loaded. Please contact support.', 'error')
+        return redirect(url_for('index'))
+    
     if 'customer_name' not in session or 'description' not in session:
         return redirect(url_for('items_input'))
     
@@ -224,6 +247,10 @@ def process_items():
 @app.route('/select-known-size', methods=['GET', 'POST'])
 def select_known_size():
     """Select a known size"""
+    if storage_finder is None:
+        flash('Application error: Storage finder module not loaded. Please contact support.', 'error')
+        return redirect(url_for('index'))
+    
     if 'customer_name' not in session:
         return redirect(url_for('start'))
     
@@ -273,6 +300,10 @@ def vehicle_warning():
 @app.route('/results')
 def show_results():
     """Show storage recommendation results"""
+    if storage_finder is None:
+        flash('Application error: Storage finder module not loaded. Please contact support.', 'error')
+        return redirect(url_for('index'))
+    
     if 'customer_name' not in session:
         return redirect(url_for('start'))
     
@@ -362,6 +393,12 @@ def get_contract_info(storage_type):
 @app.route('/api/availability/<site>/<storage_type>')
 def api_availability(site, storage_type):
     """Get availability for a site and storage type"""
+    if storage_finder is None:
+        return jsonify({
+            'success': False,
+            'error': 'Storage finder module not loaded'
+        }), 500
+    
     try:
         available_sizes = storage_finder.get_available_sizes(site, storage_type)
         return jsonify({
