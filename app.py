@@ -222,10 +222,15 @@ def select_site():
             session['storage_type'] = 'container'
         
         # Process based on method
-        if session.get('size_method') == 'known':
+        # Only go to select_known_size if explicitly choosing a known size
+        # If coming from items input, size_method should not be 'known'
+        if session.get('size_method') == 'known' and 'description' not in session:
             return redirect(url_for('select_known_size'))
+        elif 'description' in session:
+            # Coming from items input - calculate size and show recommendation
+            return redirect(url_for('process_items'))
         else:
-            # Calculate size from items
+            # Default: calculate size from items (if any)
             return redirect(url_for('process_items'))
     
     return render_template('select_site.html', storage_type=storage_type)
