@@ -158,6 +158,8 @@ def choose_storage_type_for_items():
         storage_type = request.form.get('storage_type')
         if storage_type in ['container', 'internal']:
             session['storage_type'] = storage_type
+            # Clear size_method to ensure we go to process_items, not select_known_size
+            session.pop('size_method', None)
             
             # If internal storage, auto-select Sunderland and skip site selection
             if storage_type == 'internal':
@@ -169,7 +171,7 @@ def choose_storage_type_for_items():
         else:
             flash('Please select a storage type', 'error')
     
-    return render_template('choose_size.html')
+    return render_template('choose_size.html', form_action=url_for('choose_storage_type_for_items'))
 
 @app.route('/choose-size', methods=['GET', 'POST'])
 def choose_size():
@@ -181,7 +183,7 @@ def choose_size():
         storage_type = request.form.get('storage_type')
         if not storage_type:
             flash('Please select a storage type', 'error')
-            return render_template('choose_size.html')
+            return render_template('choose_size.html', form_action=url_for('choose_size'))
         
         session['storage_type'] = storage_type
         session['size_method'] = 'known'
@@ -194,7 +196,7 @@ def choose_size():
             # Container storage - need to choose site
             return redirect(url_for('select_site'))
     
-    return render_template('choose_size.html')
+    return render_template('choose_size.html', form_action=url_for('choose_size'))
 
 @app.route('/select-site', methods=['GET', 'POST'])
 def select_site():
